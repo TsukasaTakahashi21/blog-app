@@ -1,10 +1,14 @@
 <?php
 ini_set( 'display_errors', 1 );
-
 session_start();
 require('dbconnect.php');
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Adapter\Repository\BlogRepository;
+use App\Infrastructure\Dao\BlogDao;
+
 $errors = [];
-$result = '';
+$sort = 'DESC';
 
 // ユーザー認証機能
 if (!isset($_SESSION['user_id'])) {
@@ -12,17 +16,24 @@ if (!isset($_SESSION['user_id'])) {
   exit();
 }
 
-// 自分の作成した記事のみ表示
-$sql = "SELECT * FROM blogs where user_id = :user_id";
-if (isset($_GET['sort']) && $_GET['sort'] === 'old') {
-  $sql .= " ORDER BY created_at ASC";
-} else {
-  $sql .= " ORDER BY created_at DESC";
+
+try {
+  $pdo = new PDO(
+    'mysql:host=mysql;dbname=blog;charset=utf8',
+        'root',
+        'password'
+  );
+
+  $blogDao = new BlogDao($pdo);
+  $blogRepository = new BlogRepository($pdo, $blogDao);
+  $blogs = $blogRepository->findByUserId($_SESSION['user_id'], $sort);
+  if ($blogs === null || empty($blogs)) {
+    throw new Exception("ユーザーの記事が見つかりませんでした。");
+  }
+} catch (Exception $e) {
+  echo $e->getMessage();
+  exit();
 }
-$statement = $pdo->prepare($sql);
-$statement->bindValue(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
-$statement->execute();
-$result = $statement->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -43,12 +54,12 @@ $result = $statement->fetchAll(PDO::FETCH_ASSOC);
     <form action="create.php">
       <button type="submit">新規作成</button>
     </form>
-    <?php foreach ($result as $article): ?>
+    <?php foreach ($blogs as $blog): ?>
       <div class="article">
-        <h3><?php echo htmlspecialchars($article['title'], ENT_QUOTES, 'UTF-8'); ?></h3><br>
-        <p><?php echo htmlspecialchars($article['created_at'], ENT_QUOTES, 'UTF-8'); ?></p><br>
-        <p><?php echo htmlspecialchars(mb_strimwidth($article['contents'], 0, 15, '...'), ENT_QUOTES, 'UTF-8'); ?></p><br>
-        <a href="myarticledetail.php?id=<?php echo $article['id']; ?>">記事詳細へ</a>
+        <h3><?php echo htmlspecialchars($blog->title()->value(), ENT_QUOTES, 'UTF-8'); ?></h3><br>
+        <p><?php echo htmlspecialchars($blog->createdAt()->format('Y-m-d H:i:s'), ENT_QUOTES, 'UTF-8'); ?></p><br>
+        <p><?php echo htmlspecialchars(mb_strimwidth($blog->content()->value(), 0, 15, '...'), ENT_QUOTES, 'UTF-8'); ?></p><br>
+        <a href="myarticledetail.php?id=<?php echo $blog->Id(); ?>">記事詳細へ</a>
       </div>
       <br>
     <?php endforeach; ?>

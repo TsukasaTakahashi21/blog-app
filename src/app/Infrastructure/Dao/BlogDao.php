@@ -1,5 +1,5 @@
 <?php
-namespace App\Infrastructure\DAO;
+namespace App\Infrastructure\Dao;
 
 use PDO;
 use App\Domain\Entity\Blog;

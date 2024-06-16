@@ -1,6 +1,11 @@
 <?php
 session_start();
-require('dbconnect.php');
+require('./dbconnect.php');
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Adapter\Repository\BlogRepository;
+use App\Infrastructure\Dao\BlogDao;
+use App\Domain\ValueObject\Blog\BlogComment;
 
 $errors = [];
 $result = '';
@@ -18,31 +23,20 @@ if (!isset($_SESSION['user_id'])) {
 $keyword = isset($_GET['keyword']) ? htmlspecialchars($_GET['keyword'], ENT_QUOTES, 'UTF-8') : '';
 $sort = isset($_GET['sort']) && $_GET['sort'] === 'old' ? 'ASC' : 'DESC';
 
-// 全ての記事の表示
-$sql = "SELECT * FROM blogs";
+try {
+  $pdo = new PDO(
+    'mysql:host=mysql;dbname=blog;charset=utf8',
+        'root',
+        'password'
+  );
 
-// キーワードが入力されている場合は条件を追加
-if (!empty($keyword)) {
-  $sql .= " WHERE title LIKE :keyword OR contents LIKE :keyword";
+  $blogDao = new BlogDao($pdo);
+  $blogRepository = new BlogRepository($pdo, $blogDao);
+  $blogs = $blogRepository->findAll($keyword, $sort);
+} catch (Exception $e) {
+  echo $e->getMessage();
+  exit();
 }
-
-if (isset($_GET['sort']) && $_GET['sort'] === 'old') {
-  $sql .= " ORDER BY created_at ASC";
-} else {
-  $sql .= " ORDER BY created_at DESC";
-}
-
-// SQL文を実行する準備
-$statement = $pdo->prepare($sql);
-
-// キーワードが入力されている場合、プレースホルダーに値をバインド
-if (!empty($keyword)) {
-  $keyword_like = '%' . $keyword . '%';
-  $statement->bindValue(':keyword', $keyword_like, PDO::PARAM_STR);
-}
-
-$statement->execute();
-$result = $statement->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -79,11 +73,11 @@ $result = $statement->fetchAll(PDO::FETCH_ASSOC);
       <button type="submit">検索</button>
     </form>
   </div>
-  <?php foreach ($result as $article): ?>
+  <?php foreach ($blogs as $blog): ?>
     <div class="article">
-      <h3><?php echo htmlspecialchars($article['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
-      <p><?php echo mb_strimwidth(htmlspecialchars($article['contents'], ENT_QUOTES, 'UTF-8'), 0, 15, '...'); ?></p>
-      <a href="detail.php?id=<?php echo $article['id']; ?>">記事詳細へ</a>
+      <h3><?php echo htmlspecialchars($blog->title()->value(), ENT_QUOTES, 'UTF-8'); ?></h3>
+      <p><?php echo mb_strimwidth(htmlspecialchars($blog->comment()->value(), ENT_QUOTES, 'UTF-8'), 0, 15, '...'); ?></p>
+      <a href="detail.php?id=<?php echo $blog->Id(); ?>">記事詳細へ</a>
     </div>
   <?php endforeach; ?>
 </div>

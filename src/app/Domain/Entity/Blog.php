@@ -3,19 +3,38 @@ namespace App\Domain\Entity;
 
 use App\Domain\ValueObject\Blog\BlogTitle;
 use App\Domain\ValueObject\Blog\BlogContent;
+use App\Domain\ValueObject\Blog\BlogComment;
+use DateTimeImmutable;
 
 final class Blog
 {
+  private int $id;
   private int $userId;
   private BlogTitle $title;
-  private BlogContent $content;
+  private BlogContent $contents;
+  private DateTimeImmutable $createdAt;
+  private BlogComment $comment;
 
-  public function __construct(int $userId, BlogTitle $title, BlogContent $content)
-  {
+  public function __construct(
+    int $id, 
+    int $userId, 
+    BlogTitle $title, 
+    BlogContent $contents, 
+    DateTimeImmutable $createdAt,
+    BlogComment $comment
+  ) {
+    $this->id = $id;
     $this->userId = $userId;
     $this->title = $title;
-    $this->content = $content;
+    $this->contents = $contents;
+    $this->createdAt = $createdAt;
+    $this->comment = $comment;
   }
+
+  public function Id(): int
+    {
+        return $this->id;
+    }
 
   public function userId(): int
   {
@@ -29,6 +48,18 @@ final class Blog
 
   public function content(): BlogContent
   {
-    return $this->content;
+    return $this->contents;
   }
+
+  public function createdAt(): DateTimeImmutable
+  {
+    return $this->createdAt;
+  }
+
+  public function comment(): BlogComment
+  {
+    return $this->comment;
+  }
+
+  
 }
