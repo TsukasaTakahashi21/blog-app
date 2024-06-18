@@ -47,8 +47,13 @@ class BlogRepository implements BlogRepositoryInterface
 
     public function save(Blog $blog): void
     {
-        $this->blogDao->create($blog);
+      if ($blog->id() > 0) {
+        $this->blogDao->update($blog);
+      } else {
+          $this->blogDao->create($blog);
+      }
     }
+    
 
     public function findAll (string $keyword = '', string $sort = 'DESC'): array
     {

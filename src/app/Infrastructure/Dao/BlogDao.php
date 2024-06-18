@@ -22,4 +22,25 @@ class BlogDao
         $stmt->bindValue(':contents', $blog->content()->value(), PDO::PARAM_STR);
         $stmt->execute();
   }
+
+  public function insert(Blog $blog): void
+  {
+    $stmt = $this->pdo->prepare('INSERT INTO blogs (user_id, title, contents, created_at) VALUES (?, ?, ?, ?)');
+        $stmt->execute([
+            $blog->userId(),
+            $blog->title()->value(),
+            $blog->content()->value(),
+            $blog->createdAt()->format('Y-m-d H:i:s')
+        ]);
+  }
+
+  public function update(Blog $blog): void
+  {
+    $stmt = $this->pdo->prepare('UPDATE blogs SET title = ?, contents = ? WHERE id = ?');
+        $stmt->execute([
+            $blog->title()->value(),
+            $blog->content()->value(),
+            $blog->id()
+        ]);
+  }
 }
