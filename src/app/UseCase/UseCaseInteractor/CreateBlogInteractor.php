@@ -4,7 +4,11 @@ namespace App\UseCase\UseCaseInteractor;
 use App\UseCase\UseCaseInput\CreateBlogInput;
 use App\Adapter\Repository\BlogRepository;
 use App\Domain\Entity\Blog;
+use App\Domain\ValueObject\Blog\BlogTitle;
+use App\Domain\ValueObject\Blog\BlogContent;
+use App\Domain\ValueObject\Blog\BlogComment;
 use App\UseCase\UseCaseOutput\CreateBlogOutput;
+use DateTimeImmutable; 
 
 final class CreateBlogInteractor
 {
@@ -19,11 +23,14 @@ final class CreateBlogInteractor
   {
     try {
       $blog = new Blog(
-        $input->userID(), 
+        0,
+        $input->userId(), 
         $input->title(), 
-        $input->content()
+        $input->content(),
+        new DateTimeImmutable(),
+        $input->comment()
       );
-      
+
       $this->blogRepository->save($blog);
       return new CreateBlogOutput(true, 'ブログ記事が作成されました。');
     } catch (\Exception $e) {
