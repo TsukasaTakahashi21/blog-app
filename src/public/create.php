@@ -1,38 +1,8 @@
 <?php
-ini_set( 'display_errors', 1 );
 session_start();
 require('dbconnect.php');
 $errors = [];
 
-// セッションにuserのidが保存されていない場合、signin.phpに遷移。
-if (!isset($_SESSION['user_id'])) {
-  header('Location: signin.php');
-  exit();
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $title = $_POST['title'];
-  $content = $_POST['content'];
-
-  if (empty($title) || empty($content)) {
-    $errors[] = 'タイトルか内容の入力がありません';
-    $_SESSION['errors'] = $errors;
-    header('Location: create.php');
-    exit();
-  }
-
-  if (empty($errors)) {
-    $sql = 'INSERT INTO blogs (user_id, title, contents, created_at) VALUES (:user_id, :title, :contents, NOW())';
-    $statement = $pdo->prepare($sql);
-    $statement->bindValue(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
-    $statement->bindValue(':title', $title, PDO::PARAM_STR);
-    $statement->bindValue(':contents', $content, PDO::PARAM_STR);
-    $statement->execute();
-      // マイページにリダイレクト
-    header('Location: mypage.php');
-    exit();
-  }
-}
 ?>
 
 
