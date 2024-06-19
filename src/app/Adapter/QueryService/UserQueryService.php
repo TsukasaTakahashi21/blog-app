@@ -8,6 +8,8 @@ use App\Domain\ValueObject\User\UserId;
 use App\Domain\ValueObject\User\UserName;
 use App\Domain\ValueObject\Email;
 use App\Domain\ValueObject\HashedPassword;
+use App\Domain\ValueObject\User\Age;
+use App\Domain\ValueObject\User\RegistrationDate;
 
 
 final class UserQueryService
@@ -29,7 +31,9 @@ final class UserQueryService
       new UserId($userMapper['id']),
       new UserName($userMapper['name']),
       new Email($userMapper['email']),
-      new HashedPassword($userMapper['password'])
+      new HashedPassword($userMapper['password']),
+      new Age($userMapper['age']),
+      new RegistrationDate($userMapper['created_at'])
     );
   }
 

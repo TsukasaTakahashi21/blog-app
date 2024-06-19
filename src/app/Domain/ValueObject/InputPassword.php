@@ -13,6 +13,10 @@ final class InputPassword
 
   public function __construct(string $value)
   {
+    if ($value === null) {
+      throw new Exception('パスワードが入力されていません');
+    }
+    
     if ($this->isInvalid($value)) {
       throw new Exception(self::INVALID_MESSAGE);
     }

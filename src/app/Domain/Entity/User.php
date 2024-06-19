@@ -6,6 +6,8 @@ use App\Domain\ValueObject\User\UserId;
 use App\Domain\ValueObject\User\UserName;
 use App\Domain\ValueObject\Email;
 use App\Domain\ValueObject\HashedPassword;
+use App\Domain\ValueObject\User\Age;
+use App\Domain\ValueObject\User\RegistrationDate;
 
 final class User
 {
@@ -13,17 +15,23 @@ final class User
   private $name;
   private $email;
   private $password;
+  private $age;
+  private $registrationDate;
 
   public function __construct(
     UserId $id,
     UserName $name,
     Email $email,
-    HashedPassword $password
+    HashedPassword $password,
+    Age $age,
+    RegistrationDate $registrationDate
   ) {
       $this->id = $id;
       $this->name = $name;
       $this->email = $email;
       $this->password = $password;
+      $this->age = $age;
+      $this->registrationDate = $registrationDate;
   }
 
   public function id(): UserId
@@ -44,5 +52,20 @@ final class User
   public function password(): HashedPassword
   {
       return $this->password;
+  }
+
+  public function age(): Age
+  {
+    return $this->age;
+  }
+
+  public function registrationDate(): RegistrationDate
+  {
+    return $this->registrationDate;
+  }
+
+  public function isPremiumMember(): bool
+  {
+    return $this->registrationDate()->isLongTermCustomer() && $this->age->isAdult();
   }
 }
