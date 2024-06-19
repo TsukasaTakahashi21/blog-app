@@ -61,5 +61,14 @@ final class Blog
     return $this->comment;
   }
 
-  
+  public function updateTitle(BlogTitle $title): void
+  {
+    $this->title = $title;
+  }
+
+    public function updateContent(BlogContent $content): void
+  {
+    $this->contents = $content;
+  }
+
 }
