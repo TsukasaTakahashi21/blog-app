@@ -1,61 +1,62 @@
 <?php
 namespace App\UseCase\UseCaseInteractor;
+
 require_once __DIR__ . '/../../../vendor/autoload.php';
-use App\Adapter\QueryService\UserQueryService;
-use App\Adapter\Repository\UserRepository;
 use App\UseCase\UseCaseInput\SignUpInput;
 use App\UseCase\UseCaseOutput\SignUpOutput;
 use App\Domain\ValueObject\User\NewUser;
-use App\Domain\Entity\User;
+use App\Domain\Entity\UserAge;
+use App\Domain\ValueObject\User\UserId;
+use App\Infrastructure\Dao\UserDao;
+use App\Infrastructure\Dao\UserAgeDao;
 
 
 final class SignUpInteractor
 {
-  const ALLREADY_EXISTS_MESSAGE = 'すでに登録済みのメールアドレスです';
-
-  const COMPLETED_MESSAGED = '登録が完了しました';
-
-  private $userRepository;
-  private $userQueryService;
-
   private $input;
+  private $userDao;
+  private $userAgeDao;
 
-  public function __construct(SignUpInput $input)
-  {
-    $this->userRepository = new UserRepository();
-    $this->userQueryService = new UserQueryService();
+  public function __construct(
+    SignUpInput $input,
+    UserDao $userDao,
+    UserAgeDao $userAgeDao
+  ) {
     $this->input = $input;
+    $this->userDao = $userDao;
+    $this->userAgeDao = $userAgeDao;
   }
 
   public function handler(): SignUpOutput
   {
     $user = $this->findUser();
-    if ($this->existsUser($user)) {
-      return new SignUpOutput(false, self::ALLREADY_EXISTS_MESSAGE);
+    if ($user !== null) {
+      return new SignUpOutput(false, 'すでに登録済みのメールアドレスです');
     }
 
     $this->signup();
-    return new SignUpOutput(true, self::COMPLETED_MESSAGED);
+    return new SignUpOutput(true, '登録が完了しました');
   }
 
-  private function findUser(): ?User
+  private function findUser(): ?array
   {
-    return $this->userQueryService->findByEmail(($this->input->email()));
+    return $this->userDao->findByEmail(($this->input->email()));
   }
 
-  public function existsUser(?User $user): bool
+  public function signup(): void
   {
-    return !is_null($user);
-  }
-
-  private function signup(): void
-  {
-    $this->userRepository->insert(
+    $this->userDao->create(
       new NewUser(
         $this->input->name(),
         $this->input->email(),
-        $this->input->password()
+        $this->input->password(),
+        $this->input->age()
       )
+      );
+
+    $user = $this->findUser();
+    $this->userAgeDao->create(
+      new UserAge(new UserId($user['id']), $this->input->age())
     );
   }
 }
